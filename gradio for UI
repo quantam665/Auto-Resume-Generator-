@@ -1,0 +1,118 @@
+# Install dependencies
+!pip install -q gradio requests
+
+import gradio as gr
+import requests
+
+API_BASE = "https://f6d5-34-73-7-255.ngrok-free.app"
+
+def generate_resume(name="", email="", linkedin="", summary="", education="", experience="", projects="", skills=""):
+    # Build valid JSON body
+    data = {
+        "name": name.strip(),
+        "email": email.strip(),
+        "linkedin": linkedin.strip(),
+        "summary": summary.strip(),
+        "education": education.strip(),
+        "experience": experience.strip(),
+        "projects": projects.strip(),
+        "skills": skills.strip()
+    }
+
+    # Check for missing required fields
+    if not data["name"]:
+        return "❌ Error: 'Name' is required."
+
+    try:
+        response = requests.post(f"{API_BASE}/generate_resume/", json=data)
+        if response.status_code == 200:
+            return "✅ Resume generated successfully!"
+        else:
+            return f"❌ Error {response.status_code}: {response.text}"
+    except Exception as e:
+        return f"❌ Exception: {str(e)}"
+
+# Gradio UI
+with gr.Blocks(title="Gemini Resume Builder") as demo:
+    gr.Markdown("## 🧠 Gemini Resume Builder (API Connected UI)")
+
+    with gr.Row():
+        name = gr.Textbox(label="👤 Name", placeholder="John Doe")
+        email = gr.Textbox(label="📧 Email", placeholder="john@example.com")
+        linkedin = gr.Textbox(label="🔗 LinkedIn", placeholder="https://linkedin.com/in/yourprofile")
+
+    summary = gr.Textbox(label="📝 Summary", lines=3)
+    education = gr.Textbox(label="🎓 Education", lines=3)
+    experience = gr.Textbox(label="💼 Experience", lines=3)
+    projects = gr.Textbox(label="🚀 Projects", lines=3)
+    skills = gr.Textbox(label="🛠️ Skills", placeholder="Python, ML, NLP...")
+
+    submit = gr.Button("📄 Generate Resume")
+    output = gr.Textbox(label="📢 Output")
+
+    submit.click(
+        fn=generate_resume,
+        inputs=[name, email, linkedin, summary, education, experience, projects, skills],
+        outputs=output
+    )
+
+demo.launch(share=True)
+# Install dependencies
+!pip install -q gradio requests
+
+import gradio as gr
+import requests
+
+API_BASE = "https://f6d5-34-73-7-255.ngrok-free.app"
+
+def generate_resume(name="", email="", linkedin="", summary="", education="", experience="", projects="", skills=""):
+    # Build valid JSON body
+    data = {
+        "name": name.strip(),
+        "email": email.strip(),
+        "linkedin": linkedin.strip(),
+        "summary": summary.strip(),
+        "education": education.strip(),
+        "experience": experience.strip(),
+        "projects": projects.strip(),
+        "skills": skills.strip()
+    }
+
+    # Check for missing required fields
+    if not data["name"]:
+        return "❌ Error: 'Name' is required."
+
+    try:
+        response = requests.post(f"{API_BASE}/generate_resume/", json=data)
+        if response.status_code == 200:
+            return "✅ Resume generated successfully!"
+        else:
+            return f"❌ Error {response.status_code}: {response.text}"
+    except Exception as e:
+        return f"❌ Exception: {str(e)}"
+
+# Gradio UI
+with gr.Blocks(title="Gemini Resume Builder") as demo:
+    gr.Markdown("## 🧠 Gemini Resume Builder (API Connected UI)")
+
+    with gr.Row():
+        name = gr.Textbox(label="👤 Name", placeholder="John Doe")
+        email = gr.Textbox(label="📧 Email", placeholder="john@example.com")
+        linkedin = gr.Textbox(label="🔗 LinkedIn", placeholder="https://linkedin.com/in/yourprofile")
+
+    summary = gr.Textbox(label="📝 Summary", lines=3)
+    education = gr.Textbox(label="🎓 Education", lines=3)
+    experience = gr.Textbox(label="💼 Experience", lines=3)
+    projects = gr.Textbox(label="🚀 Projects", lines=3)
+    skills = gr.Textbox(label="🛠️ Skills", placeholder="Python, ML, NLP...")
+
+    submit = gr.Button("📄 Generate Resume")
+    output = gr.Textbox(label="📢 Output")
+
+    submit.click(
+        fn=generate_resume,
+        inputs=[name, email, linkedin, summary, education, experience, projects, skills],
+        outputs=output
+    )
+
+demo.launch(share=True)
