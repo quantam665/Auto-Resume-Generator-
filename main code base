@@ -1,0 +1,98 @@
+# 📦 Install required packages
+!pip install -q fastapi uvicorn nest-asyncio pyngrok fpdf google-generativeai
+
+# 🧠 Import and configure
+import nest_asyncio
+from pyngrok import ngrok
+from fastapi import FastAPI, Form
+from fastapi.responses import FileResponse
+from fpdf import FPDF
+import google.generativeai as genai
+import uuid
+
+nest_asyncio.apply()
+
+# 🔐 Set up auth tokens
+!ngrok config add-authtoken XYZ
+genai.configure(api_key="XYZ")
+model = genai.GenerativeModel("gemini-2.0-flash")
+
+# 🚀 FastAPI app
+app = FastAPI()
+
+@app.post("/generate_resume/")
+async def generate_resume(
+    name: str = Form(...),
+    email: str = Form(""),
+    linkedin: str = Form(""),
+    summary: str = Form(""),
+
+    education: str = Form(""),
+    experience: str = Form(""),
+    projects: str = Form(""),
+    skills: str = Form("")
+):
+    sections = {
+        "Summary": summary,
+        "Education": education,
+        "Experience": experience,
+        "Projects": projects,
+        "Skills": skills
+    }
+
+    enhanced_sections = {}
+    for section, content in sections.items():
+        if content.strip():
+            prompt = (
+                f"Rewrite this {section} section as a clean, final professional resume entry. "
+                f"Do not include options, explanations, or formatting notes. Only return the final version:\n\n{content}"
+            )
+            response = model.generate_content(prompt)
+            enhanced_sections[section] = response.text.strip()
+
+    # 📄 Generate professional PDF
+    pdf = FPDF(format='A4')
+    pdf.add_page()
+    pdf.set_auto_page_break(auto=True, margin=15)
+
+    pdf.set_font("Arial", 'B', 18)
+    pdf.cell(0, 10, name, ln=True)
+
+    pdf.set_font("Arial", '', 11)
+    if email.strip():
+        pdf.cell(0, 8, f"Email: {email}", ln=True)
+    if linkedin.strip():
+        pdf.cell(0, 8, f"LinkedIn: {linkedin}", ln=True)
+
+    pdf.ln(4)
+    pdf.set_draw_color(180, 180, 180)
+    pdf.set_line_width(0.5)
+    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+    pdf.ln(4)
+
+    def print_section(title, content):
+        pdf.set_font("Arial", 'B', 13)
+        pdf.set_text_color(0)
+        pdf.cell(0, 10, title, ln=True)
+        pdf.set_font("Arial", '', 11)
+        pdf.set_text_color(50)
+        pdf.multi_cell(0, 7, content)
+        pdf.ln(3)
+
+    for section, content in enhanced_sections.items():
+        if content.strip():
+            print_section(section, content)
+
+    filename = f"resume_{uuid.uuid4().hex}.pdf"
+    pdf.output(filename)
+
+    return FileResponse(filename, media_type='application/pdf', filename="Gemini_Resume.pdf")
+
+# 🌐 Start server
+from uvicorn import Config, Server
+public_url = ngrok.connect(8000)
+print(f"🔗 Your public FastAPI URL: {public_url}/docs")
+
+config = Config(app=app, port=8000)
+server = Server(config=config)
+await server.serve()
